@@ -79,3 +79,5 @@ Thumbs.db
 /quant.db
 /quant.db-wal
 /quant.db-shm
+
+/organistaion/*
