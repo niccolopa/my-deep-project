@@ -1,13 +1,8 @@
-# Build directories
+##C++ build direcories
+
 /build/
 /build-*/
 /cmake-build-*/
-
-# Generated CMake files
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-CTestTestfile.cmake
 
 # Compiled objects, libraries and executables
 *.o
@@ -19,19 +14,33 @@ CTestTestfile.cmake
 *.dylib
 *.dll
 *.exe
+
+# Debugging and compiler-generated files
 *.pdb
 *.ilk
+*.pch
+*.gch
+*.dSYM/
 
-# Local datasets
-/data/raw/
-/data/clean/
 
-# Technical logs
+##Generated cmake files
+#keep cmmakelist.txt and cmakepresets.json in git
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+/compile_commands.json
+/CMakeUserPresets.json
+
+#localdataset
+#allow an optional .gtikeep directly inside each directory
+#data/readme remains tracked
+
 /data/logs/
 /studies/*/results/logs/
 *.log
 
-# Local databases
+#Local databases and associated temporary files
 *.db
 *.db-*
 *.sqlite
@@ -39,17 +48,17 @@ CTestTestfile.cmake
 *.sqlite3
 *.sqlite3-*
 
-# Credentials
+#Credentials and machine-specific environment settings
+# Keep .env.example free of real credentials.
+
 .env
 .env.*
 !.env.example
 *.pem
 *.key
 
-# Local IDE caches
+#Local IDE caches and operating-system files
 .vs/
-.cache/
-
-# Operating-system files
+/.cache/
 .DS_Store
 Thumbs.db
