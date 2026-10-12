@@ -62,3 +62,20 @@ CTestTestfile.cmake
 /.cache/
 .DS_Store
 Thumbs.db
+
+# Local datasets
+/data/raw/*
+!/data/raw/.gitkeep
+/data/clean/*
+!/data/clean/.gitkeep
+/data/logs/
+
+# Generated execution logs
+/studies/*/results/logs/
+/lessons/*/logs/
+
+# Build products and local database
+/build/
+/quant.db
+/quant.db-wal
+/quant.db-shm
