@@ -81,3 +81,16 @@ Thumbs.db
 /quant.db-shm
 
 /organistaion/*
+
+# raw and processed data: never in git (licences)
+data/raw/**/*.csv
+data/raw/**/*.xlsx
+data/raw/**/*.xls
+data/clean/
+data/panels/
+*.parquet
+# but the manifests go in: they prove what was downloaded
+!data/raw/**/manifest.csv
+# Python
+__pycache__/
+.venv/
