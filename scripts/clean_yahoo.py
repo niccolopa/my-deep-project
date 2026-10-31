@@ -28,7 +28,7 @@ data_dir= project_root/"data"
 clean_root= data_dir/"clean" / "yahoo-clean"
 log_dir = data_dir/"logs"
 
-LOCKED_MARKET: set[str] = set()
+LOCKED_MARKET: set[str] = {"EEM"}
 FUT = "Yahoo continuous front month: rolls NOT adjusted, no open interest"
 
 UNIVERSE = [

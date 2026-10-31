@@ -59,7 +59,7 @@ LOG_DIR = DATA_DIR / "logs"                 # one log file per run
 
 # Series that belong to your locked market. Fill in BEFORE running,
 # e.g. {"EFA"}. They are skipped and never touch your disk.
-LOCKED_MARKET: set[str] = set()
+LOCKED_MARKET: set[str] = {"EEM"}
 
 FUT = "Yahoo continuous front month: rolls NOT adjusted, no open interest"
 
