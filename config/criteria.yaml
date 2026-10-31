@@ -1,0 +1,3 @@
+train: {min_t_stat: 3.0}  #after costs
+validation: {same_sign: true, min_sharpe_ratio_to_train: 0.5}
+final: {min_deflated_sharpe: 0.95}  #corrected for total N
