@@ -1,0 +1,3 @@
+series_id,ticker,asset_class,timezone,close_time_local,close_type,calendar,time_source
+SPY,SPY,etf,America/New_York,16:00,last_trade,XNYS,https://www.nyse.com/markets/hours-calendars
+VIX,^VIX,vol_index,America/New_York,CHECK,calculated_index,XNYS,CHECK

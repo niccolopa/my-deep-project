@@ -48,7 +48,7 @@ def find_project_root() -> Path:
     for p in [here, *here.parents]:
         if p.name != "data" and (p / "data").is_dir():
             return p
-    sys.exit("Can't find the project's data folder. Put this script inside "
+    sys.exit("Can't find the project's data folder. Put this script inside"
              r"C:\dev\my-deep-project (or its scripts\ or data\ folder).")
 
 

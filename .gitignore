@@ -1,10 +1,68 @@
-##C++ build direcories
+# .gitignore for my-deep-project
+# Rule: code, notes, cards and proofs go in git.
+# Data, secrets and anything a script can rebuild stay out.
 
+#Data: never in git (licences and file size) 
+# Ignore everything inside data/raw/ ...
+/data/raw/**
+# ... but keep the folders themselves visible, so the exceptions below can work
+!/data/raw/**/
+# ... and keep the empty-folder marker and every manifest.
+# Manifests are tiny and prove what was downloaded, when, with which fingerprint.
+!/data/raw/.gitkeep
+!/data/raw/**/manifest.csv
+
+# Clean data and analysis tables are rebuilt by scripts, so they stay out
+/data/clean/*
+!/data/clean/.gitkeep
+/data/panels/
+*.parquet
+
+# Download logs DO go in git: they record versions, errors and fingerprints.
+# Every other log file stays out.
+*.log
+!/data/logs/*.log
+
+# Logs produced while running studies and lessons
+/studies/*/results/logs/
+/lessons/*/logs/
+
+
+#  Local databases
+# SQLite, DuckDB and their temporary files
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.duckdb
+*.duckdb.wal
+
+
+#  Secrets: never in git 
+# .env.example is allowed, as long as it has no real passwords or keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+
+#Python 
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+
+# C++ (for future engines)
+# Build folders
 /build/
 /build-*/
 /cmake-build-*/
-
-# Compiled objects, libraries and executables
+# Compiled files
 *.o
 *.obj
 *.a
@@ -14,17 +72,13 @@
 *.dylib
 *.dll
 *.exe
-
-# Debugging and compiler-generated files
+# Debugger and compiler files
 *.pdb
 *.ilk
 *.pch
 *.gch
 *.dSYM/
-
-
-##Generated cmake files
-#keep cmmakelist.txt and cmakepresets.json in git
+# CMake-generated files (CMakeLists.txt and CMakePresets.json stay in git)
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
@@ -32,65 +86,13 @@ CTestTestfile.cmake
 /compile_commands.json
 /CMakeUserPresets.json
 
-#localdataset
-#allow an optional .gtikeep directly inside each directory
-#data/readme remains tracked
 
-/data/logs/
-/studies/*/results/logs/
-*.log
-
-#Local databases and associated temporary files
-*.db
-*.db-*
-*.sqlite
-*.sqlite-*
-*.sqlite3
-*.sqlite3-*
-
-#Credentials and machine-specific environment settings
-# Keep .env.example free of real credentials.
-
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-
-#Local IDE caches and operating-system files
+# Editor and operating-system clutter
 .vs/
 /.cache/
 .DS_Store
 Thumbs.db
 
-# Local datasets
-/data/raw/*
-!/data/raw/.gitkeep
-/data/clean/*
-!/data/clean/.gitkeep
-/data/logs/
 
-# Generated execution logs
-/studies/*/results/logs/
-/lessons/*/logs/
-
-# Build products and local database
-/build/
-/quant.db
-/quant.db-wal
-/quant.db-shm
-
+# Old local folders
 /organistaion/*
-
-# raw and processed data: never in git (licences)
-data/raw/**/*.csv
-data/raw/**/*.xlsx
-data/raw/**/*.xls
-data/clean/
-data/panels/
-*.parquet
-# but the manifests go in: they prove what was downloaded
-!data/raw/**/manifest.csv
-# Python
-__pycache__/
-.venv/

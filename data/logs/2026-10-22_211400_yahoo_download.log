@@ -1,0 +1,31 @@
+2026-10-22 21:14:00 | INFO    | Project:        C:\dev\my-deep-project
+2026-10-22 21:14:00 | INFO    | Session folder: C:\dev\my-deep-project\data\raw\yahoo-raw\2026-10-22_211400_universe
+2026-10-22 21:14:00 | INFO    | Log file:       C:\dev\my-deep-project\data\logs\2026-10-22_211400_yahoo_download.log
+2026-10-22 21:14:00 | DEBUG   | Python 3.11.3 on Windows-10-10.0.26200-SP0
+2026-10-22 21:14:00 | DEBUG   | Route: yfinance 1.2.0, pandas 3.0.1
+2026-10-22 21:14:00 | DEBUG   | Settings: start=1980-01-01 end=2021-01-01(exclusive) interval=1d auto_adjust=False actions=True
+2026-10-22 21:14:00 | DEBUG   | Locked market: NONE SET
+2026-10-22 21:14:00 | WARNING | LOCKED_MARKET is empty: is that intended?
+2026-10-22 21:14:00 | INFO    | 2 series requested
+
+2026-10-22 21:14:00 | DEBUG   | SPY: attempt 1/3
+2026-10-22 21:14:05 | DEBUG   | SPY: received 7033 rows, columns ['Adj Close', 'Capital Gains', 'Close', 'Dividends', 'High', 'Low', 'Open', 'Stock Splits', 'Volume']
+2026-10-22 21:14:05 | INFO    | ok     SPY     SPY       1993-01-29 -> 2020-12-31    7033 rows
+2026-10-22 21:14:05 | DEBUG   | SPY_daily_raw.csv: sha256 b48b410b7a6b219139d66368ff613e2699104f95a0615002d502e39077182673
+2026-10-22 21:14:06 | DEBUG   | ^VIX: attempt 1/3
+2026-10-22 21:14:06 | DEBUG   | ^VIX: received 7812 rows, columns ['Adj Close', 'Close', 'Dividends', 'High', 'Low', 'Open', 'Stock Splits', 'Volume']
+2026-10-22 21:14:06 | INFO    | ok     VIX     ^VIX      1990-01-02 -> 2020-12-31    7812 rows
+2026-10-22 21:14:06 | DEBUG   | VIX_daily_raw.csv: sha256 61fafbb2ffc16b0266a50442d3af998202f45bb58012eea63566b70b73d707c2
+2026-10-22 21:14:07 | INFO    | 
+Done in 8 s: ok 2
+2026-10-22 21:14:07 | INFO    | Manifest: C:\dev\my-deep-project\data\raw\yahoo-raw\2026-10-22_211400_universe\manifest.csv
+2026-10-22 21:14:07 | INFO    | Log:      C:\dev\my-deep-project\data\logs\2026-10-22_211400_yahoo_download.log
+2026-10-22 21:14:07 | INFO    | Not on Yahoo, get these elsewhere:
+2026-10-22 21:14:07 | INFO    |   - Futures 2nd-4th maturities, individual and expired contracts: LSEG
+2026-10-22 21:14:07 | INFO    |   - Futures open interest and settlement prices: LSEG
+2026-10-22 21:14:07 | INFO    |   - VIX futures: LSEG (Yahoo coverage unreliable)
+2026-10-22 21:14:07 | INFO    |   - Historical options (chains, implied vol, Greeks): LSEG / OptionMetrics; Yahoo has today's chain only
+2026-10-22 21:14:07 | INFO    |   - COT positioning: CFTC website, free
+2026-10-22 21:14:07 | INFO    |   - US 2-year yield: FRED DGS2
+2026-10-22 21:14:07 | INFO    |   - SOFR overnight rate (and DFF substitute): FRED SOFR / DFF
+2026-10-22 21:14:07 | INFO    |   - High-yield and investment-grade OAS: LSEG or Datastream (FRED keeps only 3 years now)

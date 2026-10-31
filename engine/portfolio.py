@@ -1,0 +1,1 @@
+#signal, positions (eg limits or volatitlity scaling)
