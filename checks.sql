@@ -1,4 +1,5 @@
 -- Data quality checks on one Yahoo daily file, in DuckDB
+--
 
 import duckdb
 with = duckdb.connect()
