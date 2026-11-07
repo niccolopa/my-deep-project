@@ -1,6 +1,6 @@
-7 nov 2026:
+# 7 nov 2026:
 - fixed some bugs in checks.sql;
-- created an engine in python that runs checks.sql;
+- created an engine with python that runs checks.sql;
 - tested the checks.sql through duckdb on SPY and got this result (I must still fix some bugs):
 S C:\dev\personal_projects\my-deep-project> python .\data\run_checks.py
 

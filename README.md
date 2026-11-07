@@ -1,1 +1,1 @@
-Deep research on different assets. 
+Independent multi-year quantitative research project
