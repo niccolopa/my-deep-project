@@ -106,7 +106,7 @@ Index: []
 
 All checks completed.
 
-# 7 nov 2026 (Part 2): scaling QA to the full 58-asset universe
+## 7 nov 2026 (Part 2): scaling QA to the full 58-asset universe
 
 - Cleaned up `checks.sql` so it only holds the SQL queries. Updated `run_checks.py` to loop through all 58 CSV files in my download folder and feed them into DuckDB one by one.
 
