@@ -28,7 +28,7 @@ select year("Date") as yr, count(*) as flat from p where "High" = "low" group by
 
 --7) zero and ty volume:
 select
-count(*) filter (where "Volume" = 0) as vol_zero
+count(*) filter (where "Volume" = 0) as vol_zero,
 count(*) filter (where "Volume" <10) as vol_below_10
 from p;
 
