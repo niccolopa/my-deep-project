@@ -1,35 +1,31 @@
--- Data quality checks on one Yahoo daily file, in DuckDB
---
-
-CREATE OR REPLACE TABLE p AS SELECT * FROM read_csv('C:\dev\personal_projects\my-deep-project\data\clean\yahoo-clean\2026-11-07_115132_universe\SPY_daily_raw.csv');
-
 --1) size and dates:
 SELECT count(*) as rows, min("Date") as first, max("Date") as last from p;
 
 --2) duplicate dates (expected result= nothing):
 select "Date", count(*) as n from p group by "Date" having count(*) >1;
 
--- 3) rows per week (0=Sunday, 6 = Saturday: 0 and 6 must not appear)
-select dayofweek("Date") as weekday, count(*) as n from p group by weekday order by weekday;
+--3) weekend rows (0=Sunday, 6=Saturday):
+select count(*) filter (where dayofweek("Date") in (0, 6)) as weekend_rows from p;
 
---4) missing values per column:
+--4) missing or non-positive values per column:
 select
 count(*) filter (where "Close" is null) as close_null,
 count(*) filter (where "Open" is null) as open_null,
-count(*) filter (where "Volume" is null) as volume_null
+count(*) filter (where "Volume" is null) as volume_null,
+count(*) filter (where "Close" <= 0) as close_le_zero
 from p;
 
---5. inconsistent prices: open or close outside high-low:
+--5) inconsistent prices: open or close outside high-low:
 select count(*) as ohlc_bad from p
-where "Low" > least("Open", "Close") or "High" < greatest("Open", "Close") or "High" < "low";
+where "Low" > least("Open", "Close") or "High" < greatest("Open", "Close") or "High" < "Low";
 
 --6) flat bars (high=low), by year:
-select year("Date") as yr, count(*) as flat from p where "High" = "low" group by yr order by yr;
+select year("Date") as yr, count(*) as flat from p where "High" = "Low" group by yr order by yr;
 
---7) zero and ty volume:
+--7) zero and tiny volume:
 select
 count(*) filter (where "Volume" = 0) as vol_zero,
-count(*) filter (where "Volume" <10) as vol_below_10
+count(*) filter (where "Volume" < 10) as vol_below_10
 from p;
 
 --8) weekdays with no row, by year:
@@ -48,14 +44,19 @@ group by yr order by yr;
 --9) stale prices, same close 3 days in a row:
 select count(*) as stale_3 from (
     select "Close",
-    lag("Close", 1 ) over (order by "Date") as c1,
+    lag("Close", 1) over (order by "Date") as c1,
     lag("Close", 2) over (order by "Date") as c2
     from p
-) where "Close" = c1 and c1=c2;
+) where "Close" = c1 and c1 = c2;
 
---10. spikes: move >8 robust deviations, folowed by a substantial reversal:
+--10) spikes: move >8 robust deviations, followed by a substantial reversal:
 create or replace table r as
-select "Date", "close", ln("Close" / lag("Close") over (order by "Date")) as ret from p;
+select "Date", "Close",
+    case when "Close" > 0 and lag("Close") over (order by "Date") > 0
+         then ln("Close" / lag("Close") over (order by "Date"))
+         else null
+    end as ret
+from p;
 
 create or replace table r2 as
 select *,
@@ -71,14 +72,14 @@ select *,
 from r2
 window w as (order by "Date" rows between 249 preceding and current row);
 
-select "Date", "Close", round(ret, 4) as ret, round(ret /mad, 1) as z
+select "Date", "Close", round(ret, 4) as ret, round(ret / nullif(mad, 0), 1) as z
 from (
     select *, lead(ret) over (order by "Date") as next_ret from r3
-    where n >= 60 and n2 >=60
+    where n >= 60 and n2 >= 60
 )
-where abs(ret/mad) >8
+where mad > 0 and abs(ret / mad) > 8
 and sign(next_ret) = -sign(ret)
-and abs(next_ret) > 0.5*abs(ret);
+and abs(next_ret) > 0.5 * abs(ret);
 
 --11) the five biggest moves:
 select "Date", "Close", round(ret, 4) as ret from r order by abs(ret) desc nulls last limit 5;

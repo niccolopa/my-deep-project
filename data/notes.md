@@ -1,5 +1,4 @@
 # 7 nov 2026:
-
 - fixed some bugs in checks.sql;
 - created an engine with python that runs checks.sql;
 - tested the checks.sql through duckdb on SPY and got this result:
@@ -106,3 +105,26 @@ Index: []
 2020-03-12 248.110001 -0.1006
 
 All checks completed.
+
+## 7 nov 2026 (Part 2): Scaling QA to the full 58-asset universe
+
+- decoupled the hardcoded `SPY` file path from `checks.sql` so the SQL script only contains the queries, while `run_checks.py` loops through all 58 downloaded CSVs in `2026-11-07_115132_universe` and loads each one into DuckDB dynamically;
+- rewrote `run_checks.py` with pandas to flatten the SQL outputs and export a single master table (`data_quality_report.csv`) inside `data/clean/yahoo-clean/`;
+- ran the first batch test across the 58 files and hit a DuckDB crash (`_duckdb.Error: Unknown exception`) on statement 11 for `CL` and `UST13W`:
+  - **Root cause:** WTI Crude (`CL`) went negative on 2020-04-20 (`-37.63`), and the 13-week Treasury yield (`UST13W`) hit `0` and negative values during zero-rate regimes. Passing `<= 0` into `ln("Close" / lag("Close"))` produced `NaN` / `-inf`, which crashed DuckDB's C++ window `median()` function;
+  - **Fix in `checks.sql`:** added a `close_le_zero` counter in check 4, and wrapped the log return in check 10 with a `CASE WHEN "Close" > 0 AND lag("Close") > 0` guard so non-positive prices return `NULL` instead of `NaN`/`-inf`;
+- fixed three aggregation bugs in `run_checks.py` after inspecting the first CSV report:
+  1. stripped leading `--` SQL comments before checking `startswith("CREATE")` so table creations (`r`, `r2`, `r3`) don't dump a useless `Count` column into the report;
+  2. routed multi-row anomaly checks (`missing_weekdays`, `flat_bars`, `duplicate_dates`, `spike_reversals`, `max_abs_log_ret`) by column name *before* checking `len(df) == 1` (previously, if an asset had exactly 1 flat-bar year or 1 spike, it created extra messy columns in the CSV instead of summing them);
+  3. simplified check 3 to count `weekend_rows` directly (`dayofweek in (0, 6)`);
+- re-ran `run_checks.py` on all 58 files -> **0 errors**, clean `58 x 18` table saved to `data/clean/yahoo-clean/data_quality_report.csv`.
+
+### Main data issues caught by the QA report (to fix in the cleaning engine next):
+- **Duplicates & Nulls:** `0` duplicate dates and `0` null values across all 58 series.
+- **Weekend bars:** `RB` has `1` weekend row (everything else is `0`).
+- **Negative / zero closes (`close_le_zero`):** `CL` has `1` row (April 2020 negative oil), `UST13W` has `7` rows.
+- **Decimal shift on `6J`:** `max_abs_log_ret` is `2.3064` (~10x jump in a single day) with `3` spike reversals -> clear decimal-point error in Yahoo's JPY futures history.
+- **Yields vs. Prices (`UST13W`, `UST5Y`, `UST10Y`, `UST30Y`):** computing log returns on yields near zero explodes (`UST13W` has `37` spike reversals and `4.0073` max log return). Will need to use simple bps diffs (`y_t - y_{t-1}`) or convert to bond prices in the backtester.
+- **Bad OHLC bars (`Low > Open/Close` or `High < Open/Close`):** 0 on ETFs/indices, but heavy on continuous ags/metals futures (`ZS`: 847, `ZW`: 835, `ZC`: 831, `ZL`: 709, `KC`: 506, `CC`: 458, `GC`: 441) and spot FX (`USDJPY`: 199).
+
+*(Next step: improve the cleaning engine to handle these anomalies before feeding the database into the backtester).*
