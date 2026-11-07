@@ -23,7 +23,6 @@ logs/
 # Download logs DO go in git: they record versions, errors and fingerprints.
 # Every other log file stays out.
 *.log
-!/data/logs/*.log
 
 # Logs produced while running studies and lessons
 /studies/*/results/logs/

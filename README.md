@@ -1,1 +1,0 @@
-Independent multi-year quantitative research project

@@ -1,1 +1,0 @@
-the idea notebook: one line per idea

@@ -128,7 +128,7 @@ All checks completed.
 - **Duplicates & Nulls:** Exactly `0` duplicate dates and `0` missing values across the whole universe.
 - **Weekend bars:** Only `RB` has `1` stray weekend row; everything else is clean.
 - **Negative / zero closes (`close_le_zero`):** Just `CL` (1 row for negative oil in April 2020) and `UST13W` (7 rows).
-- **Decimal shift on `6J`:** `max_abs_log_ret` is `2.3064` (a massive ~10x single-day jump) with `3` spike reversals. Definitely a decimal-place glitch in Yahoo's JPY futures data.
+- **Decimal shift on `6J`:** `max_abs_log_ret` is `2.3064` (a massive 10x single-day jump) with `3` spike reversals. Definitely a decimal-place glitch in Yahoo's JPY futures data.
 - **Yields vs. Prices (`UST13W`, `UST5Y`, `UST10Y`, `UST30Y`):** Taking log returns on yield percentages near zero causes huge spikes (`UST13W` shows `37` spike reversals). For the backtester, I'll need to use simple basis-point changes (`y_t - y_{t-1}`) or convert them to proper bond prices.
 - **Bad OHLC bars (`Low > Open/Close` or `High < Open/Close`):** ETFs and indices are totally clean (`0`), but continuous ags/metals futures have a bunch (`ZS`: 847, `ZW`: 835, `ZC`: 831, `ZL`: 709, `KC`: 506, `CC`: 458, `GC`: 441) along with spot FX (`USDJPY`: 199).
 
