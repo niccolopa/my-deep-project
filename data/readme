@@ -109,7 +109,9 @@ All checks completed.
 ## 7 nov 2026 (Part 2): Scaling QA to the full 58-asset universe
 
 - decoupled the hardcoded `SPY` file path from `checks.sql` so the SQL script only contains the queries, while `run_checks.py` loops through all 58 downloaded CSVs in `2026-11-07_115132_universe` and loads each one into DuckDB dynamically;
+
 - rewrote `run_checks.py` with pandas to flatten the SQL outputs and export a single master table (`data_quality_report.csv`) inside `data/clean/yahoo-clean/`;
+
 - ran the first batch test across the 58 files and hit a DuckDB crash (`_duckdb.Error: Unknown exception`) on statement 11 for `CL` and `UST13W`:
   - **Root cause:** WTI Crude (`CL`) went negative on 2020-04-20 (`-37.63`), and the 13-week Treasury yield (`UST13W`) hit `0` and negative values during zero-rate regimes. Passing `<= 0` into `ln("Close" / lag("Close"))` produced `NaN` / `-inf`, which crashed DuckDB's C++ window `median()` function;
   - **Fix in `checks.sql`:** added a `close_le_zero` counter in check 4, and wrapped the log return in check 10 with a `CASE WHEN "Close" > 0 AND lag("Close") > 0` guard so non-positive prices return `NULL` instead of `NaN`/`-inf`;
@@ -117,6 +119,7 @@ All checks completed.
   1. stripped leading `--` SQL comments before checking `startswith("CREATE")` so table creations (`r`, `r2`, `r3`) don't dump a useless `Count` column into the report;
   2. routed multi-row anomaly checks (`missing_weekdays`, `flat_bars`, `duplicate_dates`, `spike_reversals`, `max_abs_log_ret`) by column name *before* checking `len(df) == 1` (previously, if an asset had exactly 1 flat-bar year or 1 spike, it created extra messy columns in the CSV instead of summing them);
   3. simplified check 3 to count `weekend_rows` directly (`dayofweek in (0, 6)`);
+  
 - re-ran `run_checks.py` on all 58 files -> **0 errors**, clean `58 x 18` table saved to `data/clean/yahoo-clean/data_quality_report.csv`.
 
 ### Main data issues caught by the QA report (to fix in the cleaning engine next):
