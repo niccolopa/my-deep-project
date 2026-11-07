@@ -133,3 +133,7 @@ All checks completed.
 - **Bad OHLC bars (`Low > Open/Close` or `High < Open/Close`):** ETFs and indices are totally clean (`0`), but continuous ags/metals futures have a bunch (`ZS`: 847, `ZW`: 835, `ZC`: 831, `ZL`: 709, `KC`: 506, `CC`: 458, `GC`: 441) along with spot FX (`USDJPY`: 199).
 
 *(Next step: update my cleaning script to patch these issues before I start backtesting).*
+
+## 7 nov 2026 (Part 3):
+- Implement initial cleaning_engine.py with fail-closed market locks (EEM) and timestamped logging;
+- Update locks.md to reflect active programmatic enforcement of market locks".
