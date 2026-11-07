@@ -1,14 +1,10 @@
 -- Data quality checks on one Yahoo daily file, in DuckDB
 --
 
-import duckdb
-with = duckdb.connect()
-with.sql("SELECT 42 AS test").show()
-
-CREATE OR REPLACE TABLE p AS SELECT * FROM read_csv('C:/dev/my-deep-project/data/raw/yahoo-raw/2026-10-22_211506_universe/6A_daily_raw.csv');
+CREATE OR REPLACE TABLE p AS SELECT * FROM read_csv('C:\dev\personal_projects\my-deep-project\data\clean\yahoo-clean\2026-11-07_115132_universe\SPY_daily_raw.csv');
 
 --1) size and dates:
-SELECT count(*) as rows, min('Date') as first, max("Date") as last from p;
+SELECT count(*) as rows, min("Date") as first, max("Date") as last from p;
 
 --2) duplicate dates (expected result= nothing):
 select "Date", count(*) as n from p group by "Date" having count(*) >1;
@@ -25,14 +21,14 @@ from p;
 
 --5. inconsistent prices: open or close outside high-low:
 select count(*) as ohlc_bad from p
-where "Low" > least("Open", "Close") ore "High" < greatest("Open", "Close") or "High" < "low";
+where "Low" > least("Open", "Close") or "High" < greatest("Open", "Close") or "High" < "low";
 
 --6) flat bars (high=low), by year:
 select year("Date") as yr, count(*) as flat from p where "High" = "low" group by yr order by yr;
 
 --7) zero and ty volume:
 select
-count(*) filter (where "Volume" = 0) as vol_zero;
+count(*) filter (where "Volume" = 0) as vol_zero
 count(*) filter (where "Volume" <10) as vol_below_10
 from p;
 
@@ -41,9 +37,9 @@ with days as (
     select cast(unnest(generate_series(
         cast((select min("Date") from p) as timestamp),
         cast((select max("Date") from p) as timestamp),
-    inetrval 1 day)) as date) as d
+    interval 1 day)) as date) as d
 )
-select years(d) as yr, count(*) as missing
+select YEAR(d) as yr, count(*) as missing
 from days
 where dayofweek(d) between 1 and 5
 and d not in (select "Date" from p)
@@ -57,7 +53,7 @@ select count(*) as stale_3 from (
     from p
 ) where "Close" = c1 and c1=c2;
 
---10. spikes: move >8 robust deviations that reverses the next day:
+--10. spikes: move >8 robust deviations, folowed by a substantial reversal:
 create or replace table r as
 select "Date", "close", ln("Close" / lag("Close") over (order by "Date")) as ret from p;
 
@@ -68,7 +64,7 @@ count(ret) over w as n
 from r
 window w as (order by "Date" rows between 249 preceding and current row);
 
-create or replace r3 as
+create or replace table r3 as
 select *,
        1.4826 * median(abs(ret - med)) OVER w AS mad,
        count(abs(ret - med)) OVER w AS n2
@@ -85,4 +81,4 @@ and sign(next_ret) = -sign(ret)
 and abs(next_ret) > 0.5*abs(ret);
 
 --11) the five biggest moves:
-select "Date", "Close", round(ret, 4) ad ret from r order by abs(ret) desc nulls last limit 5;
+select "Date", "Close", round(ret, 4) as ret from r order by abs(ret) desc nulls last limit 5;
