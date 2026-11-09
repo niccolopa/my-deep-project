@@ -11,7 +11,6 @@
 # Manifests are tiny and prove what was downloaded, when, with which fingerprint.
 !/data/raw/.gitkeep
 !/data/raw/**/manifest.csv
-logs/
 
 
 # Clean data and analysis tables are rebuilt by scripts, so they stay out
