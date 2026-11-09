@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import argparse
 import datetime as dt
 import hashlib
@@ -125,3 +124,51 @@ def load_locks(splits_path: Path) -> Locks:
 
 
 # Manifest:
+
+def read_manifest(manifest_path: Path) -> pd.DataFrame:
+    "read the manifest and check that it is valid"
+
+    if not manifest_path.is_file():
+        rais ManifestError(f"Manifest not found: {manifest_path}")                          #if the manifest is not there, it stops immediately with a clear message
+
+    manifest = pd.read_csv(manifest_path, dtype=str, keep_default_na=False)                 # pd.read_csv(manifest_path, dtype=str, keep_default_na=False): Reads everything as text. dtype=str prevents pandas from guessing types (for example, turning a SHA starting with digits into a number). keep_default_na=False causes an empty cell to remain "" instead of becoming NaN
+    manifest.colummns = manifest.columns.str.strip()                                        # removes any spaces from column names.
+
+    missing = REQUIRED_MANIFEST_COLUMNS - set(manifest.columns)                             # the difference between two sets, i.e. the missing mandatory columns. If it's not empty, it stops.
+    if missing:
+        raise ManifestError(f'manifest is missing columns: {sorted(missing)}')
+    if manifest.empty:
+        raise ManifestError(f'manifest has no rows')                                        # an unlined manifest is an error
+
+    manifest["series_id"] = manifest["series_id"].map(normalise_series_id)                  # apply the function I have already written to each line, so eem becomes EEM.
+    manifest["starus"] = manifest["starus"].str.strip().str.lower()                         # .str.strip().str.lower() on status: " OK " becomes "ok".
+
+    duplicated = manifest["series_id"][manifest["series_id"].duplicated()].tolist()         # find the repeated series_ids; eg, two lines for SPY would make it ambiguous which file to clean, so it stops.
+    if duplicated:
+        raise ManifestError(f"Duplicate series_id in manifest: {duplicated}")
+    unknown= sorted(set(manifest['status']) - KNOWN_STATUSES)                               # the statuses that the downloader never writes.
+    if unknown:
+        raise ManifestError(f"Unknown status values in manifest: {unknown}")
+    return manifest
+
+
+def plan_ingestion(manifest: pd.DataFrame, loks: Locks) -> tuple[list[dict]], list[tuple[str, str]]:
+    "decide without touching any file, which rows to load and wich to skip. I separated this step to prove that the locked market is excluded before any file is opened, and it can be tested with a manifest alone"
+
+    to_load: list[dict] = []
+    skipped: list[tuple[str, str]] = []
+    for now in manifest.to_dict('records'):                                                  # it transforms the table into a list of dictionaries, one per row, for example {"series_id": "SPY", "file": "SPY_daily_raw.csv", ...}.
+        series_id = row['series_id']
+        if series_id in locks.locked_markets:           # the lock is checked first
+            skipped.append(series_id, "locked market")
+            continue
+        if row["status"] != LOADABLE_STATUS:
+            skipped.append((series_id, f"manifest status '{row['status']}'"))
+            continue
+        if not is_bare_filename(row["file"]):
+            raise ManifestError(f"{series_id}: 'file' must be a plain file name, got {row['file']!r}")
+            ro_load.append(row)
+        return to_load, skipped
+
+        
+ 
