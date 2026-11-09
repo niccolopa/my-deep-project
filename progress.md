@@ -1,3 +1,10 @@
+# 9 nov 2026
+- Reviewed with Claude: the 7 Nov cleaning_engine.py crashed on the first row (`symbol` is not a manifest column) and locks.md claimed enforcement that didn't exist yet (see engineering standards, defects 14 and 20).
+- Decisions: a SHA-256 mismatch stops the whole run; the locked market is read from config/splits.yaml, and an empty lock stops the run.
+- Moved the 7 Nov download from data/clean to data/raw, and the QA report to reports/.
+- Started hand-typing the new cleaning engine (step 1: verified loading) on branch wip/cleaning-engine-step1, to understand every line. Not runnable yet.
+- Removed the old cleaning_engine.py and scripts/clean_yahoo.py. Added requirements.txt.
+
 # 7 nov 2026:
 - fixed some bugs in checks.sql;
 - created an engine with python that runs checks.sql;
