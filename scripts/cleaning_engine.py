@@ -129,7 +129,7 @@ def read_manifest(manifest_path: Path) -> pd.DataFrame:
     "read the manifest and check that it is valid"
 
     if not manifest_path.is_file():
-        rais ManifestError(f"Manifest not found: {manifest_path}")                          #if the manifest is not there, it stops immediately with a clear message
+        raise ManifestError(f"Manifest not found: {manifest_path}")                          #if the manifest is not there, it stops immediately with a clear message
 
     manifest = pd.read_csv(manifest_path, dtype=str, keep_default_na=False)                 # pd.read_csv(manifest_path, dtype=str, keep_default_na=False): Reads everything as text. dtype=str prevents pandas from guessing types (for example, turning a SHA starting with digits into a number). keep_default_na=False causes an empty cell to remain "" instead of becoming NaN
     manifest.colummns = manifest.columns.str.strip()                                        # removes any spaces from column names.
@@ -152,7 +152,7 @@ def read_manifest(manifest_path: Path) -> pd.DataFrame:
     return manifest
 
 
-def plan_ingestion(manifest: pd.DataFrame, loks: Locks) -> tuple[list[dict]], list[tuple[str, str]]:
+def plan_ingestion(manifest: pd.DataFrame, loks: Locks) -> tuple[list[dict], list[tuple[str, str]]]:
     "decide without touching any file, which rows to load and wich to skip. I separated this step to prove that the locked market is excluded before any file is opened, and it can be tested with a manifest alone"
 
     to_load: list[dict] = []
@@ -170,5 +170,5 @@ def plan_ingestion(manifest: pd.DataFrame, loks: Locks) -> tuple[list[dict]], li
             ro_load.append(row)
         return to_load, skipped
 
-        
+
  
