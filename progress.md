@@ -5,6 +5,15 @@
 - Started hand-typing the new cleaning engine (step 1: verified loading) on branch wip/cleaning-engine-step1, to understand every line. Not runnable yet.
 - Removed the old cleaning_engine.py and scripts/clean_yahoo.py. Added requirements.txt.
 
+## 9 nov 2026 (part 2):
+- Hand-typed `read_manifest`, `plan_ingestion` and `verify_and_read` (cleaning engine step 1) on branch `wip/cleaning-engine-step1`.
+- `ruff check` found 12 name errors (typos such as `KNOWN_STATUSES`, `now`/`row`, `ro_load`, `exected_rows`).
+- Code review found 5 bugs ruff cannot see: a misspelled attribute (`colummns`), a misspelled column key (`starus`), `list.append` called with two arguments in the locked-market branch, `return` indented inside the loop (only the first manifest row would be processed), and `row, dict` instead of `row: dict` in a function signature.
+- Lesson: a linter checks names and syntax, not logic. Only the tests prove the code does what it should, especially the refusal paths. The 24 tests go in when step 1 is complete.
+- Still to type: `ingest`, `setup_logger`, `main`.
+
+
+
 # 7 nov 2026:
 - fixed some bugs in checks.sql;
 - created an engine with python that runs checks.sql;

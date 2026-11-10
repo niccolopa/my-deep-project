@@ -132,43 +132,99 @@ def read_manifest(manifest_path: Path) -> pd.DataFrame:
         raise ManifestError(f"Manifest not found: {manifest_path}")                          #if the manifest is not there, it stops immediately with a clear message
 
     manifest = pd.read_csv(manifest_path, dtype=str, keep_default_na=False)                 # pd.read_csv(manifest_path, dtype=str, keep_default_na=False): Reads everything as text. dtype=str prevents pandas from guessing types (for example, turning a SHA starting with digits into a number). keep_default_na=False causes an empty cell to remain "" instead of becoming NaN
-    manifest.colummns = manifest.columns.str.strip()                                        # removes any spaces from column names.
+    manifest.columns = manifest.columns.str.strip()                                       # removes any spaces from column names.
 
     missing = REQUIRED_MANIFEST_COLUMNS - set(manifest.columns)                             # the difference between two sets, i.e. the missing mandatory columns. If it's not empty, it stops.
     if missing:
         raise ManifestError(f'manifest is missing columns: {sorted(missing)}')
     if manifest.empty:
-        raise ManifestError(f'manifest has no rows')                                        # an unlined manifest is an error
+        raise ManifestError('manifest has no rows')                                        # an unlined manifest is an error
 
     manifest["series_id"] = manifest["series_id"].map(normalise_series_id)                  # apply the function I have already written to each line, so eem becomes EEM.
-    manifest["starus"] = manifest["starus"].str.strip().str.lower()                         # .str.strip().str.lower() on status: " OK " becomes "ok".
+    manifest["status"] = manifest["status"].str.strip().str.lower()                         # .str.strip().str.lower() on status: " OK " becomes "ok".
 
     duplicated = manifest["series_id"][manifest["series_id"].duplicated()].tolist()         # find the repeated series_ids; eg, two lines for SPY would make it ambiguous which file to clean, so it stops.
     if duplicated:
         raise ManifestError(f"Duplicate series_id in manifest: {duplicated}")
-    unknown= sorted(set(manifest['status']) - KNOWN_STATUSES)                               # the statuses that the downloader never writes.
+    unknown= sorted(set(manifest['status']) - KNOWN_STATUS)                               # the statuses that the downloader never writes.
     if unknown:
         raise ManifestError(f"Unknown status values in manifest: {unknown}")
     return manifest
 
 
-def plan_ingestion(manifest: pd.DataFrame, loks: Locks) -> tuple[list[dict], list[tuple[str, str]]]:
-    "decide without touching any file, which rows to load and wich to skip. I separated this step to prove that the locked market is excluded before any file is opened, and it can be tested with a manifest alone"
-
+def plan_ingestion(manifest: pd.DataFrame, locks: Locks) -> tuple[list[dict], list[tuple[str, str]]]:
+    "decide, without touching any file, which rows to load and which to skip"
     to_load: list[dict] = []
     skipped: list[tuple[str, str]] = []
-    for now in manifest.to_dict('records'):                                                  # it transforms the table into a list of dictionaries, one per row, for example {"series_id": "SPY", "file": "SPY_daily_raw.csv", ...}.
-        series_id = row['series_id']
-        if series_id in locks.locked_markets:           # the lock is checked first
-            skipped.append(series_id, "locked market")
+    for row in manifest.to_dict("records"):
+        series_id = row["series_id"]
+        if series_id in locks.locked_markets:
+            skipped.append((series_id, "locked market"))
             continue
         if row["status"] != LOADABLE_STATUS:
             skipped.append((series_id, f"manifest status '{row['status']}'"))
             continue
         if not is_bare_filename(row["file"]):
             raise ManifestError(f"{series_id}: 'file' must be a plain file name, got {row['file']!r}")
-            ro_load.append(row)
-        return to_load, skipped
+        to_load.append(row)
+    return to_load, skipped
+
+
+
+# Verify and read:
+
+def verify_and_read(session_dir: Path, row: dict, locks: Locks) -> pd.DataFrame:
+    "check one raw file against the manifest, read it and check its contents"
+
+    series_id = row['series_id']
+    path = session_dir / row["file"]
+
+    if not path.is_file():
+        raise IntegrityError(f"{series_id}: listed as 'ok' but missing on disk: {path}")
+
+    # before reading: if the file changed, I never parse it
+    actual = sha256_of_file(path)
+    expected = row['sha256'].strip().lower()
+    if actual != expected:
+        raise IntegrityError(
+            f"{series_id}: SHA-256 mismatch, the raw file changed after download "
+            f"(manifest {expected[:12]}..., file {actual[:12]}...)"
+        )
+    
+    try:
+        frame =  pd.read_csv(path, parse_dates=[DATE_COLUMN])
+    except (ValueError, pd.errors.ParserError) as error:   # e.g. no 'Date' column, broken CSV
+        raise IntegrityError(f"{series_id}: cannot read {path.name}: {error}") from error
+    if frame.empty:
+        raise IntegrityError(f"{series_id}: file has no rows")
+    if frame[DATE_COLUMN].isna().any():
+        raise IntegrityError(f"{series_id}: some dates could not be parsed")
+
+    
+    #the manifest also recorded what was insife the file. If it disagres, something is off
+    # even though the bytes match (eg, a manifest edited by hand)
+    try:
+        expected_rows = int(row['rows'])
+    except ValueError as error:
+        raise ManifestError(f"{series_id}: 'rows' is not a number: {row['rows']!r}") from error
+    if len(frame) != expected_rows:
+        raise IntegrityError(f"{series_id}: {len(frame)} rows on disk, manifest says {expected_rows}")
+    
+    first =frame[DATE_COLUMN].min().date().isoformat()
+    last = frame[DATE_COLUMN].max().date().isoformat()
+    if (first, last) != (row["first_date"], row["last_date"]):
+        raise IntegrityError(
+            f"{series_id}: dates {first}..{last} on disk, manifest says "
+            f"{row['first_date']}..{row['last_date']}"
+        )
+    
+    # locks 1: no row in the locked years may ever than the pipeline
+    if frame[DATE_COLUMN].max().date() >= locks.final_start:
+        raise IntegrityError(f"{series_id}: contains rows on or after {locks.final_start} (locked years)")
+    return frame
+
+
+
 
 
  
