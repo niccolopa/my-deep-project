@@ -1,8 +1,18 @@
 # 15 nov 2026
-- Finished hand-typing cleaning engine step 1 (`ingest`, `setup_logger`, `main`).
-- 24 tests pass, including every refusal path (locked market, changed file, missing file, rows from 2021, empty lock, malformed manifest).
-- Ran it on the 7 Nov download: 58 series loaded with fingerprints, row counts and dates verified; SR3 skipped (failed download). EEM is absent from that manifest, so its refusal is proven by the tests, not by the real run.
-- Merged into main.
+- Fixed the pandas `inplace` deprecation in one test; the first attempt left a bare `lambda` on line 162 and broke the test (23 passed, 1 failed). Fixed in commit 7062e51. pytest after the fix: 24 passed.
+- Wrote the decisions behind `checks.sql` (log returns, median and MAD, reversal condition, 250-day window, threshold 8, flag never fix), with two whiteboard photos, in `docs/notes/checks_sql/`.
+- Started step 2, time metadata: draft for all 58 series in `reference/instruments_draft_2026-11-15.csv`, one official source per row (CME, CBOT, NYMEX, COMEX settlement times; NYSE Arca close; Cboe VIX and VVIX methodology; ICE hours and settlement windows).
+  - 15 rows certain, 33 likely, 10 guessing.
+  - Not documented anywhere public: daily cut-off of Yahoo spot FX, calculation time of Cboe yield indices, MOVE before 2019, exact publication time of SPX and NDX closes. These are marked unknown and treated as available at 23:59 New York.
+  - Futures: Yahoo does not say whether `Close` is the settlement or the last trade, so availability is set at CME's final settlement publication (18:00 Chicago, 19:00 New York).
+- Reviewed the 7 Nov quality report (produced by the fail-open `run_checks.py`, so zeros prove nothing):
+  - bad prints in Yahoo spot FX: EURUSD 16% and USDJPY 17% in one day, while 6E, FXE and FXY never exceed 4.5%;
+  - the returns check skips non-positive prices, so CL's -37.63 (April 2020) is invisible to the spike test;
+  - large "moves" in ZB and ZC are likely roll jumps (Yahoo futures are not roll-adjusted);
+  - RTY and BTC start in 2017: no data in the training period.
+- Wrote `scripts/diagnostics_2026-11-15.sql`: six read-only queries to find the dates behind these anomalies, with notes in `docs/notes/diagnostics.md`.
+- AI help: metadata research, report review, diagnostics queries and notes drafted with Claude. The metadata draft is not yet checked row by row.
+- Next: run pytest and record the number; check the draft against its sources; run the diagnostics; then write step 2 code (join the metadata, stop on a missing series, compute `available_at_utc`, daylight-saving tests).
 
 
 
