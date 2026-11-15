@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import argparse
 import datetime as dt
 import hashlib
@@ -6,6 +7,7 @@ import logging
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
+
 import pandas as pd
 import yaml
 
@@ -224,7 +226,68 @@ def verify_and_read(session_dir: Path, row: dict, locks: Locks) -> pd.DataFrame:
     return frame
 
 
+# The whole step:
+def ingest(manifest_path: Path, splits_path: Path, logger: logging.Logger) -> IngestResult:
+    "Load one download session. Raises CleaningError on any problem (fail-closed)."
+    locks = load_locks(splits_path)
+    logger.info("Locks: market %s, years from %s", sorted(locks.locked_markets), locks.final_start)
 
+    manifest = read_manifest(manifest_path)
+    result = IngestResult(manifest_sha256=sha256_of_file(manifest_path))
+    logger.info("Manifest %s (sha256 %s), %d rows", manifest_path, result.manifest_sha256, len(manifest))
+
+    to_load, result.skipped = plan_ingestion(manifest, locks)
+    for series_id, reason in result.skipped:
+        logger.warning("SKIP %-7s %s", series_id, reason)
+
+    session_dir = manifest_path.parent
+    for row in to_load:
+        result.frames[row["series_id"]] = verify_and_read(session_dir, row, locks)
+        logger.info("OK   %-7s %6d rows, sha256 verified", row["series_id"], len(result.frames[row["series_id"]]))
+
+    logger.info("Loaded %d series, skipped %d", len(result.frames), len(result.skipped))
+    return result
+
+
+# Command line:
+def setup_logger(log_dir: Path) -> tuple[logging.Logger, Path]:
+    """One log file per run (never overwritten), plus the console."""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"{dt.datetime.now():%Y-%m-%d_%H%M%S}_cleaning_engine.log"
+    logger = logging.getLogger("cleaning_engine")
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    logger.propagate = False
+    formatter = logging.Formatter("%(asctime)s | %(levelname)-8s | %(message)s", "%Y-%m-%d %H:%M:%S")
+    for handler in (logging.FileHandler(log_path, encoding="utf-8"), logging.StreamHandler(sys.stdout)):
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    return logger, log_path
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Cleaning engine, step 1: verified loading of one download session.")
+    parser.add_argument("manifest", type=Path, help="path to the session's manifest.csv")
+    args = parser.parse_args(argv)
+
+    root = find_project_root(Path(__file__).resolve().parent)
+    logger, log_path = setup_logger(root / "data" / "logs")
+    try:
+        result = ingest(args.manifest.resolve(), root / "config" / "splits.yaml", logger)
+    except CleaningError as error:
+        logger.critical("STOPPED: %s", error)
+        logger.info("Log: %s", log_path)
+        return 1
+    except Exception:
+        logger.exception("STOPPED by an unexpected error")
+        logger.info("Log: %s", log_path)
+        return 1
+    logger.info("Done. %d series ready for step 2. Log: %s", len(result.frames), log_path)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
 
  
