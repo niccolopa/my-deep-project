@@ -1,0 +1,7 @@
+# Notes: diagnostics_2026-11-15.sql
+
+## What it is
+A magnifying glass, not a cleaning step. The quality report tells me *how many* problems a series has ("EURUSD: one 16% jump"), but not *when* they happened, and without the date I cannot tell an error from a real event. These six queries fetch the exact rows: RB's weekend row, CL's negative price, the 5 largest moves with their dates, the days when spot EURUSD and the 6E future disagree, the yield rows with a volume they should not have, and the inconsistent OHLC bars year by year. They read the raw files and change nothing: I look, I write down what I found, and the decision is taken at step 3, in the `issues` table.
+
+## Why this way and not another
+I chose read-only SQL queries, instead of fixing the data in Python or adding lines to `checks.sql`, for three reasons. First, a fix made before knowing what the problem is invents data: if I interpolate 6J's jump, I am using tomorrow's price (look-ahead). Second, `checks.sql` must count problems on every series, every time; these are one-off questions on specific series, and mixing them in would muddy the report. Third, the twin check (EURUSD against 6E, USDJPY against FXY) is stronger than any statistical threshold: a threshold cannot tell a real crash from a typo, while two different sources being wrong on the same day by the same amount is almost impossible.
