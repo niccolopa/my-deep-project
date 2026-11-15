@@ -1,3 +1,11 @@
+# 15 nov 2026
+- Finished hand-typing cleaning engine step 1 (`ingest`, `setup_logger`, `main`).
+- 24 tests pass, including every refusal path (locked market, changed file, missing file, rows from 2021, empty lock, malformed manifest).
+- Ran it on the 7 Nov download: 58 series loaded with fingerprints, row counts and dates verified; SR3 skipped (failed download). EEM is absent from that manifest, so its refusal is proven by the tests, not by the real run.
+- Merged into main.
+
+
+
 # 9 nov 2026
 - Reviewed with Claude: the 7 Nov cleaning_engine.py crashed on the first row (`symbol` is not a manifest column) and locks.md claimed enforcement that didn't exist yet (see engineering standards, defects 14 and 20).
 - Decisions: a SHA-256 mismatch stops the whole run; the locked market is read from config/splits.yaml, and an empty lock stops the run.
