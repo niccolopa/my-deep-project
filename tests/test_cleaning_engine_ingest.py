@@ -159,7 +159,7 @@ def test_missing_manifest_stops_the_run(project, logger):
 
 
 def test_manifest_without_sha256_column_stops_the_run(project, logger):
-    lambda f: f.pop("sha256")
+    rewrite_manifest(project["manifest"], lambda f: f.pop("sha256"))
     with pytest.raises(ce.ManifestError, match="missing columns"):
         ce.ingest(project["manifest"], project["splits"], logger)
 
