@@ -8,7 +8,7 @@
 
 
 # 15 nov 2026
-- Fixed the pandas `inplace` deprecation in one test; the first attempt left a bare `lambda` on line 162 and broke the test (23 passed, 1 failed). Fixed in commit NEW (7062e51 before the history rewrites of 16 Nov). pytest after the fix: 24 passed.
+- Fixed the pandas `inplace` deprecation in one test; the first attempt left a bare `lambda` on line 162 and broke the test (23 passed, 1 failed). Fixed in commit 8797ee7 (7062e51 before the history rewrites of 16 Nov). pytest after the fix: 24 passed.
 - Wrote the decisions behind `checks.sql` (log returns, median and MAD, reversal condition, 250-day window, threshold 8, flag never fix), with two whiteboard photos, in `docs/notes/checks_sql/`.
 - Started step 2, time metadata: draft for all 58 series in `reference/instruments_draft_2026-11-15.csv`, one official source per row (CME, CBOT, NYMEX, COMEX settlement times; NYSE Arca close; Cboe VIX and VVIX methodology; ICE hours and settlement windows).
   - 15 rows certain, 33 likely, 10 guessing.
@@ -19,7 +19,7 @@
   - the returns check skips non-positive prices, so CL's -37.63 (April 2020) is invisible to the spike test;
   - large "moves" in ZB and ZC are likely roll jumps (Yahoo futures are not roll-adjusted);
   - RTY and BTC start in 2017: no data in the training period.
-- Wrote `scripts/diagnostics_2026-11-15.sql`: six read-only queries to find the dates behind these anomalies, with notes in `docs/notes/diagnostics.md`.
+- Wrote `scripts/diagnostics_2026-11-15.sql`: six read-only queries to find the dates behind these anomalies, with notes in `docs/notes/notes_diagnostics.md`.
 - AI help: metadata research, report review, diagnostics queries and notes drafted with Claude. The metadata draft is not yet checked row by row.
 - Next: run pytest and record the number; check the draft against its sources; run the diagnostics; then write step 2 code (join the metadata, stop on a missing series, compute `available_at_utc`, daylight-saving tests).
 
