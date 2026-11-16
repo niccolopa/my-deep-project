@@ -20,5 +20,5 @@ changed. The full old → new map is kept privately (commit-map_2026-11-16.txt).
 
 
 Second pass, same day: every PDF (a published paper and exported notes) was also removed from
-the history. N commits that only added or deleted removed files no longer exist; every other
+the history. 3 commits that only added or deleted removed files no longer exist (1 in the first pass, 2 in this one); every other
 commit keeps its date and content. Second map: commit-map_2026-11-16_b.txt (kept privately).
