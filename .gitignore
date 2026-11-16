@@ -96,3 +96,5 @@ Thumbs.db
 
 # Old local folders
 /organistaion/*
+# PDFs (papers, exported notes) stay on my machine: not mine to redistribute
+*.pdf
