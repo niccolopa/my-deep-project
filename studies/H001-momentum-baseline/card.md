@@ -1,1 +1,1 @@
-written and committed BEFORE any run
+> Status: template, not yet written. This card will be completed and committed before any run of H001.

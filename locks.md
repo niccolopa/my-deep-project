@@ -17,3 +17,8 @@ On 16 Nov 2026 the git history was rewritten with git filter-repo, to remove an 
 (data/raw/lseg-raw/) that must not be redistributed and to replace the author email with
 the GitHub noreply address. Commit dates and contents are otherwise unchanged; commit hashes
 changed. The full old → new map is kept privately (commit-map_2026-11-16.txt).
+
+
+Second pass, same day: every PDF (a published paper and exported notes) was also removed from
+the history. N commits that only added or deleted removed files no longer exist; every other
+commit keeps its date and content. Second map: commit-map_2026-11-16_b.txt (kept privately).
