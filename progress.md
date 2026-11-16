@@ -1,5 +1,10 @@
+# 16 Nov 2026
+- Rewrote the git history to remove the LSEG file committed on 6 Oct (it was still downloadable from old commits) and to replace my personal email with the GitHub noreply address. Done on a mirror clone with git filter-repo; pushed to a new repository; the old one is renamed my-deep-project-old-private and stays private. Commit dates unchanged, hashes changed; old → new map kept privately.
+- Fresh working folder cloned from the new repository; ignored files (data, logs, .venv) copied back; the LSEG file is ignored by .gitignore (checked with git check-ignore). pytest: 24 passed.
+- AI help: procedure planned step by step with Claude.
+
 # 15 nov 2026
-- Fixed the pandas `inplace` deprecation in one test; the first attempt left a bare `lambda` on line 162 and broke the test (23 passed, 1 failed). Fixed in commit 7062e51. pytest after the fix: 24 passed.
+- Fixed the pandas `inplace` deprecation in one test; the first attempt left a bare `lambda` on line 162 and broke the test (23 passed, 1 failed). Fixed in commit b04c7e5 (7062e51 before the history rewrite of 16 Nov). pytest after the fix: 24 passed.
 - Wrote the decisions behind `checks.sql` (log returns, median and MAD, reversal condition, 250-day window, threshold 8, flag never fix), with two whiteboard photos, in `docs/notes/checks_sql/`.
 - Started step 2, time metadata: draft for all 58 series in `reference/instruments_draft_2026-11-15.csv`, one official source per row (CME, CBOT, NYMEX, COMEX settlement times; NYSE Arca close; Cboe VIX and VVIX methodology; ICE hours and settlement windows).
   - 15 rows certain, 33 likely, 10 guessing.
