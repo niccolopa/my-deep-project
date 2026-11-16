@@ -1,10 +1,8 @@
 colorama==0.4.6
-DateTime==6.0
 iniconfig==2.3.1
 numpy==2.4.6
 packaging==26.3
 pandas==3.1.1
-pathlib==1.0.1
 pluggy==1.7.0
 Pygments==2.21.0
 pytest==9.2.0
@@ -13,4 +11,5 @@ pytz==2026.6
 PyYAML==6.0.3
 ruff==0.17.4
 tzdata==2026.6
-zope.interface==8.7
+duckdb==2.0.0
+yfinance==1.2.0
