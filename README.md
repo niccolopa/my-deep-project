@@ -13,6 +13,17 @@ An honest, long-running quantitative research project: testing trading ideas the
 ## Pipeline
 raw files (as downloaded) → cleaning engine (load, check, flag) → one clean table → backtests
 
+## Data cleaning
+
+**Done and tested**
+- Raw files are loaded only if their SHA-256 fingerprint, row count and date range match the download manifest. The locked market is refused before its file is opened, and the run stops on any row dated 2021 or later (24 tests, each protection tested in the case where it must refuse).
+
+**In progress**
+- One clock for every price: each series gets its exchange time zone and close time, and every row gets the UTC time at which the price could really be known (`available_at_utc`). A backtest will use a price only after that time. Draft metadata for 58 series: `reference/instruments_draft_2026-11-15.csv`; close times that no public source documents are marked unknown and treated conservatively.
+
+**Planned**
+- Data-quality checks inside the engine, writing to an issues table: robust spike detection (median and MAD over a rolling year, flagged only if the move reverses the next day), twin-series checks (e.g. spot EURUSD against the CME future), explicit flags for non-positive prices. Suspicious values are flagged, never rewritten.
+
 ## Run the tests
     python -m venv .venv
     .venv\Scripts\Activate.ps1
@@ -23,4 +34,4 @@ raw files (as downloaded) → cleaning engine (load, check, flag) → one clean 
 No market data is stored in this repository. Raw files are downloaded with the scripts in `scripts/` (Yahoo Finance; LSEG Workspace through the university licence) and stay on my machine, under each provider's terms. The repository tracks only the download manifests (file names, row counts, dates and SHA-256 fingerprints), so every result can be traced to the exact files it used.
 
 ## Not done yet
-Time metadata for every series, data-quality checks inside the engine, the clean table, and the first study card (H001), which will be written and committed before any run.
+The clean table and the first study card (H001), which will be written and committed before any run.
